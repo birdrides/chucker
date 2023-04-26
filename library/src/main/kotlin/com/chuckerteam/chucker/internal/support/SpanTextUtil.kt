@@ -67,13 +67,16 @@ public class SpanTextUtil(context: Context) {
         return -1
     }
     public fun simpleSpanJson(input: CharSequence): SpannableStringBuilder {
-        // first handle pretty printing via gson
+        // First handle the pretty printing step via gson built-in support
         val prettyPrintedInput = FormatUtils.formatJson(input.toString())
 
         var lastTokenType: TokenType? = null
         var index = 0
 
         val sb = SpannableStringBuilder(prettyPrintedInput)
+        // First we set a span for all text to match the digits and null value color since other
+        // cases will be overridden below
+        sb.setColor(0, prettyPrintedInput.length, jsonDigitsAndNullValueColor)
         while (index < prettyPrintedInput.length) {
             val (tokenIndex, tokenType) = prettyPrintedInput.indexOfNextToken(startIndex = index)
             when (tokenType) {
@@ -83,7 +86,7 @@ public class SpanTextUtil(context: Context) {
                 TokenType.VALUE_SEPARATOR -> {
                     sb.setColor(
                         start = tokenIndex,
-                        end = tokenIndex,
+                        end = tokenIndex + 1,
                         color = jsonSignElementsColor
                     )
                     index = tokenIndex + 1
@@ -101,13 +104,17 @@ public class SpanTextUtil(context: Context) {
                             jsonValueColor
                         }
                     }
-                    val endIndex = prettyPrintedInput.indexOfNextUnescapedQuote(tokenIndex + 1)
+                    val endIndex = try {
+                        prettyPrintedInput.indexOfNextUnescapedQuote(tokenIndex + 1)
+                    } catch (e: Exception) {
+                        -1
+                    }
                     // if we somehow get an incomplete string, we lose the ability to parse any other
                     // tokens, so just return now
                     if (endIndex < tokenIndex) {
                         return sb
                     }
-                    sb.setColor(start = tokenIndex, end = endIndex, color)
+                    sb.setColor(start = tokenIndex, end = endIndex + 1, color)
                     index = endIndex + 1
                 }
                 TokenType.NONE -> return sb
