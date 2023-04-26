@@ -104,13 +104,14 @@ public class SpanTextUtil(context: Context) {
                             jsonValueColor
                         }
                     }
+
                     @Suppress("TooGenericExceptionCaught", "SwallowedException")
                     val endIndex =
                         try {
-                        prettyPrintedInput.indexOfNextUnescapedQuote(tokenIndex + 1)
-                    } catch (e: Exception) {
-                        -1
-                    }
+                            prettyPrintedInput.indexOfNextUnescapedQuote(tokenIndex + 1)
+                        } catch (e: Exception) {
+                            -1
+                        }
                     // if we somehow get an incomplete string, we lose the ability to parse any other
                     // tokens, so just return now
                     if (endIndex < tokenIndex) {
