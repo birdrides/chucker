@@ -38,7 +38,7 @@ public class SpanTextUtil(context: Context) {
         }
     }
 
-    private inline fun CharSequence.indexOfNextToken(
+    private fun CharSequence.indexOfNextToken(
         startIndex: Int = 0
     ): Pair<Int, TokenType> {
         var index = indexOfAny(TokenType.allPossibleTokens, startIndex)
@@ -56,7 +56,7 @@ public class SpanTextUtil(context: Context) {
         return -1 to TokenType.NONE
     }
 
-    private inline fun CharSequence.indexOfNextUnescapedQuote(startIndex: Int = 0): Int {
+    private fun CharSequence.indexOfNextUnescapedQuote(startIndex: Int = 0): Int {
         var index = indexOf('"', startIndex)
         while (index < length) {
             if (this[index] == '"' && (index == 0 || this[index - 1] != '\\')) {
@@ -104,7 +104,9 @@ public class SpanTextUtil(context: Context) {
                             jsonValueColor
                         }
                     }
-                    val endIndex = try {
+                    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+                    val endIndex =
+                        try {
                         prettyPrintedInput.indexOfNextUnescapedQuote(tokenIndex + 1)
                     } catch (e: Exception) {
                         -1
