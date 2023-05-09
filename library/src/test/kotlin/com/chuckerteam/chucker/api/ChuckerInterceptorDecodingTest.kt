@@ -15,6 +15,7 @@ import okio.Buffer
 import okio.ByteString
 import okio.IOException
 import org.junit.Rule
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -28,6 +29,11 @@ internal class ChuckerInterceptorDecodingTest {
     private val serverUrl = server.url("/") // Starts server implicitly
 
     @TempDir lateinit var tempDir: File
+
+    @BeforeEach
+    fun setup() {
+        Chucker.setEnabled(true)
+    }
 
     @ParameterizedTest
     @EnumSource
