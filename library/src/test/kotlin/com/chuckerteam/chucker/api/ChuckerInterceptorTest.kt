@@ -29,6 +29,7 @@ import okio.ByteString.Companion.encodeUtf8
 import okio.GzipSink
 import okio.buffer
 import org.junit.Rule
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
@@ -48,6 +49,11 @@ internal class ChuckerInterceptorTest {
     lateinit var tempDir: File
     private val chuckerInterceptor =
         ChuckerInterceptorDelegate(cacheDirectoryProvider = { tempDir })
+
+    @BeforeEach
+    fun setup() {
+        Chucker.setEnabled(true)
+    }
 
     @ParameterizedTest
     @EnumSource(value = ClientFactory::class)
