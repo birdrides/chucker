@@ -1,4 +1,4 @@
-FROM runmymind/docker-android-sdk:ubuntu-standalone
+FROM runmymind/docker-android-sdk:ubuntu-standalone-cba7888e
 
 ENV JAVA_OPTS "-Xmx4g -Xms4g -Dfile.encoding=UTF-8"
 
