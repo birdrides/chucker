@@ -27,7 +27,10 @@ public object Chucker {
     @Suppress("MayBeConst ") // https://github.com/ChuckerTeam/chucker/pull/169#discussion_r362341353
     public val isOp: Boolean = true
 
-    private var _isEnabled: Boolean = true
+    /**
+     * Default to having this library disabled until enabled via setEnabled() call
+     */
+    private var _isEnabled: Boolean = false
 
     /**
      * Check if this instance is currently enabled to intercept network calls.
