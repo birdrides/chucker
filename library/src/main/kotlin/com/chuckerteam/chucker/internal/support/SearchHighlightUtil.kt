@@ -14,13 +14,16 @@ import android.text.style.UnderlineSpan
 internal fun SpannableStringBuilder.highlightWithDefinedColors(
     search: String,
     backgroundColor: Int,
-    foregroundColor: Int
+    foregroundColor: Int,
 ): SpannableStringBuilder {
     val startIndexes = indexesOf(this.toString(), search)
     return applyColoredSpannable(this, startIndexes, search.length, backgroundColor, foregroundColor)
 }
 
-private fun indexesOf(text: String, search: String): List<Int> {
+private fun indexesOf(
+    text: String,
+    search: String,
+): List<Int> {
     val startPositions = mutableListOf<Int>()
     var index = text.indexOf(search, 0, true)
     while (index >= 0) {
@@ -35,7 +38,7 @@ private fun applyColoredSpannable(
     indexes: List<Int>,
     length: Int,
     backgroundColor: Int,
-    foregroundColor: Int
+    foregroundColor: Int,
 ): SpannableStringBuilder {
     return indexes
         .fold(text) { builder, position ->
@@ -43,19 +46,19 @@ private fun applyColoredSpannable(
                 UnderlineSpan(),
                 position,
                 position + length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             builder.setSpan(
                 ForegroundColorSpan(foregroundColor),
                 position,
                 position + length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             builder.setSpan(
                 BackgroundColorSpan(backgroundColor),
                 position,
                 position + length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             builder
         }

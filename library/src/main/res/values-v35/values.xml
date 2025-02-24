@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- In values-v35.xml -->
+<!-- See: https://medium.com/androiddevelopers/insets-handling-tips-for-android-15s-edge-to-edge-enforcement-872774e8839b -->
+<resources>
+  <!-- TODO: Remove once activities handle insets. -->
+  <style name="chucker_OptOutEdgeToEdgeEnforcement">
+    <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+  </style>
+</resources>
