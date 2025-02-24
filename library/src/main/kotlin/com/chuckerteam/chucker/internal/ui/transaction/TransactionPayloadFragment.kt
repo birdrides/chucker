@@ -34,7 +34,6 @@ import java.io.IOException
 
 internal class TransactionPayloadFragment :
     Fragment(), SearchView.OnQueryTextListener {
-
     private val viewModel: TransactionViewModel by activityViewModels { TransactionViewModelFactory() }
 
     private val payloadType: PayloadType by lazy(LazyThreadSafetyMode.NONE) {
@@ -48,18 +47,19 @@ internal class TransactionPayloadFragment :
             if (uri != null && transaction != null) {
                 lifecycleScope.launch {
                     val result = saveToFile(payloadType, uri, transaction)
-                    val toastMessageId = if (result) {
-                        R.string.chucker_file_saved
-                    } else {
-                        R.string.chucker_file_not_saved
-                    }
+                    val toastMessageId =
+                        if (result) {
+                            R.string.chucker_file_saved
+                        } else {
+                            R.string.chucker_file_not_saved
+                        }
                     Toast.makeText(applicationContext, toastMessageId, Toast.LENGTH_SHORT).show()
                 }
             } else {
                 Toast.makeText(
                     applicationContext,
                     R.string.chucker_save_failed_to_open_document,
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
             }
         }
@@ -78,17 +78,21 @@ internal class TransactionPayloadFragment :
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        payloadBinding = ChuckerFragmentTransactionPayloadBinding.inflate(
-            inflater,
-            container,
-            false
-        )
+        payloadBinding =
+            ChuckerFragmentTransactionPayloadBinding.inflate(
+                inflater,
+                container,
+                false,
+            )
         return payloadBinding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         payloadBinding.payloadRecyclerView.apply {
@@ -115,17 +119,18 @@ internal class TransactionPayloadFragment :
 
                     payloadBinding.loadingProgress.visibility = View.GONE
                 }
-            }
+            },
         )
     }
 
     private fun showEmptyState() {
         payloadBinding.apply {
-            emptyPayloadTextView.text = if (payloadType == PayloadType.RESPONSE) {
-                getString(R.string.chucker_response_is_empty)
-            } else {
-                getString(R.string.chucker_request_is_empty)
-            }
+            emptyPayloadTextView.text =
+                if (payloadType == PayloadType.RESPONSE) {
+                    getString(R.string.chucker_response_is_empty)
+                } else {
+                    getString(R.string.chucker_request_is_empty)
+                }
             emptyStateGroup.visibility = View.VISIBLE
             payloadRecyclerView.visibility = View.GONE
         }
@@ -139,7 +144,10 @@ internal class TransactionPayloadFragment :
     }
 
     @SuppressLint("NewApi")
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(
+        menu: Menu,
+        inflater: MenuInflater,
+    ) {
         val transaction = viewModel.transaction.value
 
         if (shouldShowSearchIcon(transaction)) {
@@ -163,7 +171,7 @@ internal class TransactionPayloadFragment :
         if (payloadType == PayloadType.REQUEST) {
             viewModel.doesRequestBodyRequireEncoding.observe(
                 viewLifecycleOwner,
-                { menu.findItem(R.id.encode_url).isVisible = it }
+                { menu.findItem(R.id.encode_url).isVisible = it },
             )
         } else {
             menu.findItem(R.id.encode_url).isVisible = false
@@ -172,20 +180,22 @@ internal class TransactionPayloadFragment :
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    private fun shouldShowSaveIcon(transaction: HttpTransaction?) = when {
-        (payloadType == PayloadType.REQUEST) -> (0L != (transaction?.requestPayloadSize))
-        (payloadType == PayloadType.RESPONSE) -> (0L != (transaction?.responsePayloadSize))
-        else -> true
-    }
+    private fun shouldShowSaveIcon(transaction: HttpTransaction?) =
+        when {
+            (payloadType == PayloadType.REQUEST) -> (0L != (transaction?.requestPayloadSize))
+            (payloadType == PayloadType.RESPONSE) -> (0L != (transaction?.responsePayloadSize))
+            else -> true
+        }
 
-    private fun shouldShowSearchIcon(transaction: HttpTransaction?) = when (payloadType) {
-        PayloadType.REQUEST -> {
-            (false == transaction?.isRequestBodyEncoded) && (0L != (transaction.requestPayloadSize))
+    private fun shouldShowSearchIcon(transaction: HttpTransaction?) =
+        when (payloadType) {
+            PayloadType.REQUEST -> {
+                (false == transaction?.isRequestBodyEncoded) && (0L != (transaction.requestPayloadSize))
+            }
+            PayloadType.RESPONSE -> {
+                (false == transaction?.isResponseBodyEncoded) && (0L != (transaction.responsePayloadSize))
+            }
         }
-        PayloadType.RESPONSE -> {
-            (false == transaction?.isResponseBodyEncoded) && (0L != (transaction.responsePayloadSize))
-        }
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -204,7 +214,7 @@ internal class TransactionPayloadFragment :
             payloadAdapter.highlightQueryWithColors(
                 newText,
                 backgroundSpanColor,
-                foregroundSpanColor
+                foregroundSpanColor,
             )
         } else {
             payloadAdapter.resetHighlight()
@@ -212,14 +222,21 @@ internal class TransactionPayloadFragment :
         return true
     }
 
+    private fun HttpTransaction.bodyString(formatRequestBody: Boolean): CharSequence {
+        return if (formatRequestBody) {
+            getSpannedRequestBody(context)
+        } else {
+            requestBody ?: ""
+        }
+    }
+
     private suspend fun processPayload(
         type: PayloadType,
         transaction: HttpTransaction,
-        formatRequestBody: Boolean
+        formatRequestBody: Boolean,
     ): MutableList<TransactionPayloadItem> {
         return withContext(Dispatchers.Default) {
             val result = mutableListOf<TransactionPayloadItem>()
-
             val headersString: String
             val isBodyEncoded: Boolean
             val bodyString: CharSequence
@@ -227,11 +244,7 @@ internal class TransactionPayloadFragment :
             if (type == PayloadType.REQUEST) {
                 headersString = transaction.getRequestHeadersString(true)
                 isBodyEncoded = transaction.isRequestBodyEncoded
-                bodyString = if (formatRequestBody) {
-                    transaction.getSpannedRequestBody(context)
-                } else {
-                    transaction.requestBody ?: ""
-                }
+                bodyString = transaction.bodyString(formatRequestBody)
             } else {
                 headersString = transaction.getResponseHeadersString(true)
                 isBodyEncoded = transaction.isResponseBodyEncoded
@@ -242,9 +255,9 @@ internal class TransactionPayloadFragment :
                     TransactionPayloadItem.HeaderItem(
                         HtmlCompat.fromHtml(
                             headersString,
-                            HtmlCompat.FROM_HTML_MODE_LEGACY
-                        )
-                    )
+                            HtmlCompat.FROM_HTML_MODE_LEGACY,
+                        ),
+                    ),
                 )
             }
 
@@ -266,23 +279,28 @@ internal class TransactionPayloadFragment :
                     val text = requireContext().getString(R.string.chucker_body_empty)
                     result.add(TransactionPayloadItem.BodyLineItem(SpannableStringBuilder.valueOf(text)))
                 }
-                else -> bodyString.lines().forEach {
-                    result.add(
-                        TransactionPayloadItem.BodyLineItem(
-                            if (it is SpannableStringBuilder) {
-                                it
-                            } else {
-                                SpannableStringBuilder.valueOf(it)
-                            }
+                else ->
+                    bodyString.lines().forEach {
+                        result.add(
+                            TransactionPayloadItem.BodyLineItem(
+                                if (it is SpannableStringBuilder) {
+                                    it
+                                } else {
+                                    SpannableStringBuilder.valueOf(it)
+                                },
+                            ),
                         )
-                    )
-                }
+                    }
             }
             return@withContext result
         }
     }
 
-    private suspend fun saveToFile(type: PayloadType, uri: Uri, transaction: HttpTransaction): Boolean {
+    private suspend fun saveToFile(
+        type: PayloadType,
+        uri: Uri,
+        transaction: HttpTransaction,
+    ): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 requireContext().contentResolver.openFileDescriptor(uri, "w")?.use {
@@ -317,9 +335,10 @@ internal class TransactionPayloadFragment :
 
         fun newInstance(type: PayloadType): TransactionPayloadFragment =
             TransactionPayloadFragment().apply {
-                arguments = Bundle().apply {
-                    putSerializable(ARG_TYPE, type)
-                }
+                arguments =
+                    Bundle().apply {
+                        putSerializable(ARG_TYPE, type)
+                    }
             }
     }
 

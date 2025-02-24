@@ -1,32 +1,33 @@
 buildscript {
     ext {
-        kotlinVersion = '1.8.20'
-        androidGradleVersion = '8.0.0'
-        coroutineVersion = '1.6.4'
+        kotlinVersion = '2.1.10'
+        kspVersion = '2.1.10-1.0.30'
+        androidGradleVersion = '8.8.1'
+        coroutineVersion = '1.8.1'
 
         // Google libraries
-        activityVersion = '1.7.1'
-        appCompatVersion = '1.6.1'
-        constraintLayoutVersion = '2.1.4'
-        materialComponentsVersion = '1.8.0'
-        fragmentVersion = '1.5.7'
-        roomVersion = '2.5.1'
-        lifecycleVersion = '2.6.1'
+        activityVersion = '1.10.0'
+        appCompatVersion = '1.7.0'
+        constraintLayoutVersion = '2.2.0'
+        materialComponentsVersion = '1.12.0'
+        fragmentVersion = '1.8.6'
+        roomVersion = '2.6.1'
+        lifecycleVersion = '2.8.7'
         androidXCoreVersion = '2.2.0'
         paletteKtxVersion = '1.0.0'
 
         // Networking
         brotliVersion = '0.1.2'
-        gsonVersion = '2.10.1'
-        okhttpVersion = '4.11.0'
-        retrofitVersion = '2.9.0'
+        gsonVersion = '2.11.0'
+        okhttpVersion = '5.0.0-alpha.13'
+        retrofitVersion = '2.11.0'
         wireVersion = '4.5.5'
 
         // Debug and quality control
         binaryCompatibilityValidator = '0.13.1'
-        detektVersion = '1.22.0'
-        ktLintGradleVersion = '11.3.1'
-        leakcanaryVersion = '2.10'
+        detektVersion = '1.23.8'
+        ktLintGradleVersion = '12.1.2'
+        leakcanaryVersion = '2.14'
 
         // Apollo
         apolloVersion = '3.8.1'
@@ -69,6 +70,7 @@ buildscript {
 plugins {
     id 'co.bird.gradle.version' version '2.3.2'
     id 'com.jfrog.artifactory' version '4.21.0'
+    id 'com.google.devtools.ksp' version "$kspVersion" apply false
 }
 
 apply plugin: 'binary-compatibility-validator'
@@ -112,8 +114,8 @@ task clean(type: Delete) {
 
 ext {
     minSdkVersion = 21
-    targetSdkVersion = 33
-    compileSdkVersion = 33
+    targetSdkVersion = 35
+    compileSdkVersion = 35
 }
 
 nexusStaging {
