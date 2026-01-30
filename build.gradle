@@ -49,6 +49,14 @@ buildscript {
     }
 
     repositories {
+        maven {
+            name = "codeartifact"
+            url = uri(co.bird.CodeArtifact.PUBLIC_URL)
+            credentials {
+                username = "aws"
+                password = co.bird.CodeArtifact.getAuthToken()
+            }
+        }
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        gradlePluginPortal()
@@ -89,6 +97,14 @@ allprojects {
     group = GROUP
 
     repositories {
+        maven {
+            name = "codeartifact"
+            url = uri(co.bird.CodeArtifact.PUBLIC_URL)
+            credentials {
+                username = "aws"
+                password = co.bird.CodeArtifact.getAuthToken()
+            }
+        }
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        mavenCentral()

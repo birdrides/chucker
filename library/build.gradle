@@ -129,6 +129,14 @@ project.afterEvaluate {
         }
         repositories {
             maven {
+                name = "codeartifact"
+                url = uri(co.bird.CodeArtifact.PRIVATE_URL)
+                credentials {
+                    username = "aws"
+                    password = co.bird.CodeArtifact.getAuthToken()
+                }
+            }
+            maven {
                 url = uri('https://artifactory.svc.bird.co/artifactory/internal')
                 credentials {
                     username = System.getenv('ARTIFACTORY_USER')
