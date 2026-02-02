@@ -1,0 +1,33 @@
+// Shared CodeArtifact configuration to avoid repetition
+// This file provides helper methods and constants for CodeArtifact repository access
+
+ext {
+    codeartifactPublicUrl = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/"
+    codeartifactPrivateUrl = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven-private/"
+    
+    // Cached authorization token to avoid repeated AWS calls
+    cachedCodeArtifactToken = null
+    
+    // Fetch CodeArtifact authorization token from AWS
+    getCodeArtifactToken = {
+        if (cachedCodeArtifactToken == null) {
+            println("Fetching CodeArtifact authorization token...")
+            def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
+            proc.waitFor()
+            cachedCodeArtifactToken = proc.text.trim()
+        }
+        return cachedCodeArtifactToken
+    }
+    
+    // Configure a CodeArtifact repository
+    configureCodeArtifactRepository = { RepositoryHandler repos, String url, String name = "codeartifact" ->
+        repos.maven {
+            this.name = name
+            this.url = uri(url)
+            credentials {
+                username = "aws"
+                password = getCodeArtifactToken()
+            }
+        }
+    }
+}

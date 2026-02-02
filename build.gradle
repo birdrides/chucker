@@ -1,3 +1,6 @@
+// Apply shared CodeArtifact configuration
+apply from: 'gradle/codeartifact.gradle'
+
 buildscript {
     ext {
         kotlinVersion = '2.1.10'
@@ -49,14 +52,7 @@ buildscript {
     }
 
     repositories {
-        maven {
-            name = "codeartifact"
-            url = uri(co.bird.CodeArtifact.PUBLIC_URL)
-            credentials {
-                username = "aws"
-                password = co.bird.CodeArtifact.getAuthToken()
-            }
-        }
+        configureCodeArtifactRepository(repositories, codeartifactPublicUrl)
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        gradlePluginPortal()
@@ -76,7 +72,6 @@ buildscript {
 }
 
 plugins {
-    id 'co.bird.gradle.version' version '2.3.2'
     id 'com.jfrog.artifactory' version '4.21.0'
     id 'com.google.devtools.ksp' version "$kspVersion" apply false
 }
@@ -97,14 +92,7 @@ allprojects {
     group = GROUP
 
     repositories {
-        maven {
-            name = "codeartifact"
-            url = uri(co.bird.CodeArtifact.PUBLIC_URL)
-            credentials {
-                username = "aws"
-                password = co.bird.CodeArtifact.getAuthToken()
-            }
-        }
+        configureCodeArtifactRepository(repositories, codeartifactPublicUrl)
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        mavenCentral()
