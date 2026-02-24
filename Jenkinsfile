@@ -7,9 +7,12 @@ def scmVars
 def shortCommit
 def versionExt
 
-@Library('Utils@master')
+@Library('Utils@v2')
 import co.bird.Utils
+import co.bird.AwsRunner 
+
 @Field utils = new Utils()
+@Field awsRunner = new AwsRunner()
 
 @Field buildType
 
@@ -29,22 +32,26 @@ timestamps {
         gitRef = scmVars.GIT_BRANCH
       }
       stage('Build and Publish') {
-        docker.withRegistry('https://168995956934.dkr.ecr.us-west-2.amazonaws.com', 'ecr:us-west-2:ecs-credentials') {
-          docker.build('local/android').inside('-v /root/.gradle:/root/.gradle -v /root/.android:/root/.android') {
-            sh "./gradlew clean build"
-            if (scmVars.GIT_BRANCH == "develop") {
-              def secrets = [
-                [$class: 'VaultSecret', path: "secret/services/jenkins/artifactory", secretValues: [
-                  [$class: 'VaultSecretValue', envVar: 'ARTIFACTORY_USER', vaultKey: 'USER'],
-                  [$class: 'VaultSecretValue', envVar: 'ARTIFACTORY_API_KEY', vaultKey: 'API_KEY'],
-                ]]
-              ]
-              wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-                sh "./gradlew publish -PreleaseVersionExt='${versionExt}'"
+        awsRunner.run(this, { ctx, credsFilePath ->
+          withEnv(["AWS_SHARED_CREDENTIALS_FILE=${credsFilePath}"]) {
+            docker.withRegistry('https://168995956934.dkr.ecr.us-west-2.amazonaws.com', 'ecr:us-west-2:ecs-credentials') {
+              docker.build('local/android').inside('-v /root/.gradle:/root/.gradle -v /root/.android:/root/.android') {
+                sh "./gradlew clean build"
+                if (scmVars.GIT_BRANCH == "develop") {
+                  def secrets = [
+                    [$class: 'VaultSecret', path: "secret/services/jenkins/artifactory", secretValues: [
+                      [$class: 'VaultSecretValue', envVar: 'ARTIFACTORY_USER', vaultKey: 'USER'],
+                      [$class: 'VaultSecretValue', envVar: 'ARTIFACTORY_API_KEY', vaultKey: 'API_KEY'],
+                    ]]
+                  ]
+                  wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+                    sh "./gradlew publish -PreleaseVersionExt='${versionExt}'"
+                  }
+                }
               }
             }
           }
-        }
+        })
       }
     } catch (e) {
       currentBuild.result = 'FAILURE'
