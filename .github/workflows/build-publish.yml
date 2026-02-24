@@ -3,7 +3,7 @@ name: Build and Publish
 on:
   push:
     branches: [ develop ]
-  pull_request_target:
+  pull_request:
     branches: [ develop ]
   
 env:
@@ -12,11 +12,11 @@ env:
 
 jobs:
   build:
-    runs-on: k8s-mode
+    runs-on: ${{ github.event_name == 'push' && 'k8s-mode' || 'ubuntu-latest' }}
     container:
       image: runmymind/docker-android-sdk:ubuntu-standalone-20260221
       env:
-        JAVA_OPTS: "-Xmx12g -Xms12g -Dfile.encoding=UTF-8"
+        JAVA_OPTS: ${{ github.event_name == 'push' && '-Xmx12g -Xms12g -Dfile.encoding=UTF-8' || '-Xmx6g -Xms2g -Dfile.encoding=UTF-8' }}
 
     steps:
     - name: Checkout code
@@ -45,6 +45,7 @@ jobs:
         restore-keys: gradle-deps-
 
     - name: Get AWS credentials and setup
+      if: github.event_name == 'push'
       uses: birdrides/github-actions/.github/actions/auth-setup@v0
 
     - name: Build with Gradle
