@@ -1,0 +1,61 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+  
+env:
+  ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+  ARTIFACTORY_API_KEY: ${{ secrets.ARTIFACTORY_API_KEY }}
+
+jobs:
+  build:
+    runs-on: k8s-mode
+    container:
+      image: runmymind/docker-android-sdk:ubuntu-standalone-20260221
+      env:
+        JAVA_OPTS: "-Xmx12g -Xms12g -Dfile.encoding=UTF-8"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Generate Tag
+      id: tag
+      uses: birdrides/github-actions/.github/actions/generate-tag@v0
+
+    - name: Cache Gradle wrapper
+      if: github.event_name == 'pull_request'
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/wrapper
+        key: gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+        restore-keys: gradle-wrapper-
+
+    - name: Cache Gradle dependencies
+      if: github.event_name == 'pull_request'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/jdks
+        key: gradle-deps-${{ hashFiles('**/*.gradle', '**/*.gradle.kts') }}
+        restore-keys: gradle-deps-
+
+    - name: Get AWS credentials and setup
+      uses: birdrides/github-actions/.github/actions/auth-setup@v0
+
+    - name: Build with Gradle
+      run: ./gradlew clean build --stacktrace --no-daemon
+      env:
+        GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+    - name: Publish Library
+      if: github.event_name == 'push'
+      run: ./gradlew publish -PreleaseVersionExt='${{ steps.tag.outputs.versionExt }}' --stacktrace --no-daemon
+      env:
+        GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+        GITHUB_REF: ${{ github.ref }}
+        GITHUB_SHA: ${{ github.sha }}
