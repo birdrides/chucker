@@ -1,6 +1,3 @@
-// Apply shared CodeArtifact configuration
-apply from: 'gradle/codeartifact.gradle'
-
 buildscript {
     ext {
         kotlinVersion = '2.1.10'
@@ -52,7 +49,14 @@ buildscript {
     }
 
     repositories {
-        configureCodeArtifactRepository(repositories, codeartifactPublicUrl)
+        maven {
+            name = "codeartifact"
+            url = uri("https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/")
+            credentials {
+                username = "aws"
+                password = { "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute().with { waitFor(); text.trim() } }()
+            }
+        }
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        gradlePluginPortal()
@@ -79,6 +83,8 @@ plugins {
 apply plugin: 'binary-compatibility-validator'
 apply plugin: 'io.codearte.nexus-staging'
 
+apply from: rootProject.file('gradle/codeartifact.gradle')
+
 apiValidation {
     ignoredProjects += ["sample"]
     ignoredPackages += [
@@ -92,7 +98,7 @@ allprojects {
     group = GROUP
 
     repositories {
-        configureCodeArtifactRepository(repositories, codeartifactPublicUrl)
+        configureCodeArtifactRepository(delegate, codeartifactPublicUrl)
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
 //        google()
 //        mavenCentral()
