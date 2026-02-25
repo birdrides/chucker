@@ -20,10 +20,10 @@ ext {
     }
     
     // Configure a CodeArtifact repository
-    configureCodeArtifactRepository = { RepositoryHandler repos, String url, String name = "codeartifact" ->
+    configureCodeArtifactRepository = { RepositoryHandler repos, String url, String repoName = "codeartifact" ->
         repos.maven {
-            this.name = name
-            this.url = uri(url)
+            name = repoName
+            url = uri(url)
             credentials {
                 username = "aws"
                 password = getCodeArtifactToken()

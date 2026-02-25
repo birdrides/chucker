@@ -22,13 +22,6 @@ android {
     compileSdk rootProject.compileSdkVersion
     namespace "com.chuckerteam.chucker"
 
-    compileOptions {
-        kotlinOptions.freeCompilerArgs += [
-            '-module-name', "com.github.ChuckerTeam.Chucker.library",
-            "-Xexplicit-api=strict"
-        ]
-    }
-
     defaultConfig {
         minSdk rootProject.minSdkVersion
         consumerProguardFiles 'proguard-rules.pro'
@@ -43,6 +36,10 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
+        freeCompilerArgs += [
+            '-module-name', "com.github.ChuckerTeam.Chucker.library",
+            "-Xexplicit-api=strict"
+        ]
     }
 
     buildFeatures {

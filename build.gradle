@@ -2,7 +2,7 @@ buildscript {
     ext {
         kotlinVersion = '2.1.10'
         kspVersion = '2.1.10-1.0.30'
-        androidGradleVersion = '8.8.1'
+        androidGradleVersion = '8.13.0'
         coroutineVersion = '1.8.1'
 
         // Google libraries
@@ -49,6 +49,9 @@ buildscript {
     }
 
     repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
         maven {
             name = "codeartifact"
             url = uri("https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/")
@@ -58,8 +61,6 @@ buildscript {
             }
         }
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
-//        google()
-//        gradlePluginPortal()
     }
 
     dependencies {
@@ -76,6 +77,7 @@ buildscript {
 }
 
 plugins {
+    id 'co.bird.gradle.version' version '5.0.3'
     id 'com.jfrog.artifactory' version '4.21.0'
     id 'com.google.devtools.ksp' version "$kspVersion" apply false
 }
@@ -100,8 +102,8 @@ allprojects {
     repositories {
         configureCodeArtifactRepository(delegate, codeartifactPublicUrl)
         maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
-//        google()
-//        mavenCentral()
+        google()
+        mavenCentral()
     }
 
     tasks.withType(Test) {
