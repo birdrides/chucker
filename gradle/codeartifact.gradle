@@ -1,0 +1,81 @@
+/**
+ * CodeArtifact repository configuration script.
+ * Can be applied in settings.gradle, build.gradle, or any module build.gradle.
+ * 
+ * Usage:
+ *   apply from: rootProject.file('gradle/codeartifact.gradle')
+ */
+
+// Build-scoped token cache: stored on gradle.ext so it survives across all projects
+// in the same Gradle daemon invocation, matching the Kotlin `by lazy` singleton semantics.
+if (!gradle.ext.has('_codeArtifactCachedToken')) {
+    gradle.ext._codeArtifactCachedToken = null
+}
+
+ext {
+    codeArtifact = [
+        publicUrl: "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/",
+        privateUrl: "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven-private/",
+
+        getAuthToken: {
+            /**
+             * Cached authorization token. Fetched once per Gradle daemon lifecycle.
+             * CodeArtifact tokens expire after 12 hours, but Gradle daemon typically restarts before then.
+             *
+             * To manually refresh the token, stop the Gradle daemon: ./gradlew --stop
+             *
+             * Note: This cache is not used by settings.gradle pluginManagement block, as buildSrc
+             * is not available during that phase. All other repository blocks benefit from this cache.
+             */
+            if (gradle.ext._codeArtifactCachedToken == null) {
+                println("Fetching CodeArtifact authorization token...")
+                gradle.ext._codeArtifactCachedToken = ext.codeArtifact.fetchAuthToken()
+            } else {
+                println("♻️ Using cached CodeArtifact authorization token")
+            }
+            return gradle.ext._codeArtifactCachedToken
+        },
+        
+        fetchAuthToken: { String profile = "bird-svc", String region = "us-west-2",
+                          String domain = "bird", String domainOwner = "168995956934" ->
+            def awsPath = System.getProperty("aws.path") ?: "aws"
+            def command = [
+                awsPath, "codeartifact", "get-authorization-token",
+                "--profile", profile,
+                "--region", region,
+                "--domain", domain,
+                "--domain-owner", domainOwner,
+                "--query", "authorizationToken",
+                "--output", "text"
+            ]
+
+            def processBuilder = new ProcessBuilder(command)
+
+            // Inherit environment variables from parent process
+            processBuilder.environment().putAll(System.getenv())
+
+            // Ensure HOME is set for AWS config lookup
+            // Supports IntelliJ local development: IntelliJ's Gradle tool may not propagate HOME,
+            // causing AWS profile lookup to fail from ~/.aws/credentials and preventing token fetch
+            processBuilder.environment().put("HOME", System.getProperty("user.home"))
+
+            // Combine stderr with stdout for debugging
+            processBuilder.redirectErrorStream(true)
+
+            def proc = processBuilder.start() // See README.md → Prerequisites for setup if this fails with "Cannot run program aws"
+            def output = proc.inputStream.text.trim()
+            def exitCode = proc.waitFor()
+
+            if (exitCode != 0) {
+                throw new GradleException("Failed to fetch CodeArtifact token. Exit code: ${exitCode}. Output: ${output}")
+            }
+
+            if (output.isEmpty()) {
+                throw new GradleException("CodeArtifact token is empty. AWS CLI may have failed silently.")
+            }
+
+            println("✅ CodeArtifact token fetched successfully")
+            return output
+        }
+    ]
+}

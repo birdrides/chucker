@@ -1,23 +1,16 @@
 plugins {
     id 'com.google.devtools.ksp'
+    id 'co.bird.gradle.version'
 }
+
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'co.bird.gradle.version'
-apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
 android {
     compileSdk rootProject.compileSdkVersion
     namespace "com.chuckerteam.chucker"
-
-    compileOptions {
-        kotlinOptions.freeCompilerArgs += [
-            '-module-name', "com.github.ChuckerTeam.Chucker.library",
-            "-Xexplicit-api=strict"
-        ]
-    }
 
     defaultConfig {
         minSdk rootProject.minSdkVersion
@@ -33,6 +26,10 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
+        freeCompilerArgs += [
+            '-module-name', "com.github.ChuckerTeam.Chucker.library",
+            "-Xexplicit-api=strict"
+        ]
     }
 
     buildFeatures {
@@ -129,10 +126,11 @@ project.afterEvaluate {
         }
         repositories {
             maven {
-                url = uri('https://artifactory.svc.bird.co/artifactory/internal')
+                name = "codeartifact-private"
+                url = uri(rootProject.codeArtifact.privateUrl)
                 credentials {
-                    username = System.getenv('ARTIFACTORY_USER')
-                    password = System.getenv('ARTIFACTORY_API_KEY')
+                    username = "aws"
+                    password = rootProject.codeArtifact.getAuthToken()
                 }
             }
         }
