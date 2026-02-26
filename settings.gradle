@@ -1,21 +1,17 @@
 pluginManagement {
+    apply from: new File(settingsDir, 'gradle/codeartifact.gradle')
+
     repositories {
         maven {
             name = "codeartifact"
-            url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/"
+            url = codeArtifact.publicUrl
             credentials {
                 username = "aws"
-                password = {
-                    def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
-                    proc.waitFor()
-                    return proc.text.trim()
-                }()
+                password = codeArtifact.getAuthToken()
             }
-        }
-        maven {
-            url 'https://artifactory.svc.bird.co/artifactory/bird'
         }
         gradlePluginPortal()
     }
 }
+
 include ':sample', ':library', ':library-no-op'

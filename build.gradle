@@ -1,8 +1,9 @@
 buildscript {
+      apply from: rootProject.file('gradle/codeartifact.gradle')
     ext {
         kotlinVersion = '2.1.10'
         kspVersion = '2.1.10-1.0.30'
-        androidGradleVersion = '8.13.0'
+        androidGradleVersion = '8.8.1'
         coroutineVersion = '1.8.1'
 
         // Google libraries
@@ -21,7 +22,7 @@ buildscript {
         gsonVersion = '2.11.0'
         okhttpVersion = '5.0.0-alpha.13'
         retrofitVersion = '2.11.0'
-        wireVersion = '4.5.5'
+        wireVersion = '4.9.9'
 
         // Debug and quality control
         binaryCompatibilityValidator = '0.17.0'
@@ -46,21 +47,22 @@ buildscript {
 
         // Publishing
         nexusStagingPlugin = '0.30.0'
+
     }
 
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
+        // buildscript runs before apply from, so this must be inline
         maven {
             name = "codeartifact"
-            url = uri("https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/")
+            url = uri(codeArtifact.publicUrl)
             credentials {
                 username = "aws"
-                password = { "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute().with { waitFor(); text.trim() } }()
+                password = codeArtifact.getAuthToken()
             }
         }
-        maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
     }
 
     dependencies {
@@ -78,13 +80,13 @@ buildscript {
 
 plugins {
     id 'co.bird.gradle.version' version '5.0.3'
-    id 'com.jfrog.artifactory' version '4.21.0'
     id 'com.google.devtools.ksp' version "$kspVersion" apply false
 }
 
 apply plugin: 'binary-compatibility-validator'
 apply plugin: 'io.codearte.nexus-staging'
 
+// Must come before allprojects so codeArtifact.* is available
 apply from: rootProject.file('gradle/codeartifact.gradle')
 
 apiValidation {
@@ -100,8 +102,14 @@ allprojects {
     group = GROUP
 
     repositories {
-        configureCodeArtifactRepository(delegate, codeartifactPublicUrl)
-        maven { url = uri 'https://artifactory.svc.bird.co/artifactory/bird' }
+        maven {
+            name = "codeartifact"
+            url = uri(codeArtifact.publicUrl)
+            credentials {
+                username = "aws"
+                password = codeArtifact.getAuthToken()
+            }
+        }
         google()
         mavenCentral()
     }
