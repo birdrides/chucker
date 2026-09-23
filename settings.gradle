@@ -1,15 +1,22 @@
 pluginManagement {
+    // Fetched once per build and shared with every build script through gradle.ext.
+    // CI can export CODEARTIFACT_AUTH_TOKEN to skip the aws call entirely.
+    gradle.ext.codeArtifactToken = System.getenv("CODEARTIFACT_AUTH_TOKEN") ?: {
+        def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
+        proc.waitFor()
+        if (proc.exitValue() != 0) {
+            throw new GradleException("Failed to fetch CodeArtifact token: ${proc.err.text.trim()}")
+        }
+        return proc.text.trim()
+    }()
+
     repositories {
         maven {
             name = "codeartifact"
             url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/"
             credentials {
                 username = "aws"
-                password = {
-                    def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
-                    proc.waitFor()
-                    return proc.text.trim()
-                }()
+                password = gradle.codeArtifactToken
             }
         }
         gradlePluginPortal()

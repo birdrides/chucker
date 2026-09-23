@@ -54,11 +54,7 @@ buildscript {
             url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/"
             credentials {
                 username = "aws"
-                password = {
-                    def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
-                    proc.waitFor()
-                    return proc.text.trim()
-                }()
+                password = gradle.codeArtifactToken
             }
         }
 //        google()
@@ -104,11 +100,7 @@ allprojects {
             url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven/"
             credentials {
                 username = "aws"
-                password = {
-                    def proc = "aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc".execute()
-                    proc.waitFor()
-                    return proc.text.trim()
-                }()
+                password = gradle.codeArtifactToken
             }
         }
 //        google()
