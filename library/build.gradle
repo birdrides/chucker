@@ -5,7 +5,6 @@ plugins {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'co.bird.gradle.version'
-apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
 android {
@@ -129,10 +128,11 @@ project.afterEvaluate {
         }
         repositories {
             maven {
-                url = uri('https://artifactory.svc.bird.co/artifactory/internal')
+                name = "codeartifact"
+                url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven-private/"
                 credentials {
-                    username = System.getenv('ARTIFACTORY_USER')
-                    password = System.getenv('ARTIFACTORY_API_KEY')
+                    username = "aws"
+                    password = gradle.codeArtifactToken
                 }
             }
         }
