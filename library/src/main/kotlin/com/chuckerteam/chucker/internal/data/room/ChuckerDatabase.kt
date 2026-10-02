@@ -6,17 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.chuckerteam.chucker.internal.data.entity.HttpTransaction
 
-@Database(entities = [HttpTransaction::class], version = 9, exportSchema = false)
+@Database(entities = [HttpTransaction::class], version = 11, exportSchema = false)
 internal abstract class ChuckerDatabase : RoomDatabase() {
     abstract fun transactionDao(): HttpTransactionDao
 
     companion object {
         private const val DB_NAME = "chucker.db"
 
-        fun create(applicationContext: Context): ChuckerDatabase {
-            return Room.databaseBuilder(applicationContext, ChuckerDatabase::class.java, DB_NAME)
-                .fallbackToDestructiveMigration()
+        fun create(applicationContext: Context): ChuckerDatabase =
+            Room
+                .databaseBuilder(applicationContext, ChuckerDatabase::class.java, DB_NAME)
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
-        }
     }
 }

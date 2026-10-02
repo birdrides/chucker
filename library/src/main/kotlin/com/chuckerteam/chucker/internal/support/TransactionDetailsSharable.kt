@@ -13,6 +13,7 @@ internal class TransactionDetailsSharable(
     override fun toSharableContent(context: Context): Source =
         Buffer().apply {
             writeUtf8("${context.getString(R.string.chucker_url)}: ${transaction.getFormattedUrl(encodeUrls)}\n")
+            writeUtf8("${context.getString(R.string.chucker_host_ip)}: ${transaction.hostIp}\n")
             writeUtf8("${context.getString(R.string.chucker_method)}: ${transaction.method}\n")
             writeUtf8("${context.getString(R.string.chucker_protocol)}: ${transaction.protocol}\n")
             writeUtf8("${context.getString(R.string.chucker_status)}: ${transaction.status}\n")
@@ -29,14 +30,11 @@ internal class TransactionDetailsSharable(
             writeUtf8("${context.getString(R.string.chucker_total_size)}: ${transaction.totalSizeString}\n")
             writeUtf8("\n")
             writeUtf8("---------- ${context.getString(R.string.chucker_request)} ----------\n\n")
-
             var headers = FormatUtils.formatHeaders(transaction.getParsedRequestHeaders(), false)
-
             if (headers.isNotBlank()) {
                 writeUtf8(headers)
                 writeUtf8("\n")
             }
-
             writeUtf8(
                 if (transaction.requestBody.isNullOrBlank()) {
                     val resId =
@@ -50,10 +48,8 @@ internal class TransactionDetailsSharable(
                     transaction.getFormattedRequestBody()
                 },
             )
-
             writeUtf8("\n\n")
             writeUtf8("---------- ${context.getString(R.string.chucker_response)} ----------\n\n")
-
             headers = FormatUtils.formatHeaders(transaction.getParsedResponseHeaders(), false)
 
             if (headers.isNotBlank()) {
