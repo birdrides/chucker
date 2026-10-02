@@ -1,0 +1,26 @@
+// Bird replacement for gradle-mvn-push.gradle: publishes the release variant to Bird's private
+// CodeArtifact repository as $GROUP:$ARTIFACT_ID. The version comes from the co.bird.gradle.version
+// plugin (version.json + -PreleaseVersionExt), so this script must not reassign `version`.
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            afterEvaluate {
+                from components.release
+            }
+            groupId = GROUP
+            artifactId = ARTIFACT_ID
+        }
+    }
+    repositories {
+        maven {
+            name = "codeartifact"
+            url = "https://bird-168995956934.d.codeartifact.us-west-2.amazonaws.com/maven/maven-private/"
+            credentials {
+                username = "aws"
+                password = gradle.codeArtifactToken
+            }
+        }
+    }
+}
