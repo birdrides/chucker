@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.kotlinx.binary.compatibility.validator)
-    alias(libs.plugins.nexus.publish)
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -58,15 +57,4 @@ extra.apply {
     set("minSdkVersion", 21)
     set("targetSdkVersion", 36)
     set("compileSdkVersion", 36)
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-            username.set(findProperty("NEXUS_USERNAME").toString())
-            password.set(findProperty("NEXUS_PASSWORD").toString())
-        }
-    }
 }
