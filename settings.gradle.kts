@@ -8,7 +8,8 @@ pluginManagement {
                 providers
                     .exec {
                         commandLine(
-                            "aws", "codeartifact", "get-authorization-token",
+                            System.getProperty("aws.path") ?: "aws",
+                            "codeartifact", "get-authorization-token",
                             "--domain", "bird",
                             "--domain-owner", "168995956934",
                             "--region", "us-west-2",
@@ -16,6 +17,9 @@ pluginManagement {
                             "--output", "text",
                             "--profile", "bird-svc",
                         )
+                        // IntelliJ's Gradle tooling may not propagate HOME, which breaks the
+                        // ~/.aws profile lookup.
+                        environment("HOME", System.getProperty("user.home"))
                     }.standardOutput.asText
                     .map { it.trim() },
             ).get()

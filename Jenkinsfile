@@ -33,11 +33,19 @@ timestamps {
       stage('Build and Publish') {
         awsRunner.run(this, { ctx, credsFilePath ->
           withEnv(["AWS_SHARED_CREDENTIALS_FILE=${credsFilePath}"]) {
+            // Pre-fetch the CodeArtifact token once so each Gradle invocation below picks it up via
+            // CODEARTIFACT_AUTH_TOKEN instead of calling the AWS CLI itself.
+            def codeArtifactToken = sh(
+              returnStdout: true,
+              script: 'aws codeartifact get-authorization-token --domain bird --domain-owner 168995956934 --region us-west-2 --query authorizationToken --output text --profile bird-svc'
+            ).trim()
             docker.withRegistry('https://168995956934.dkr.ecr.us-west-2.amazonaws.com', 'ecr:us-west-2:ecs-credentials') {
               docker.build('local/android').inside('-v /root/.gradle:/root/.gradle -v /root/.android:/root/.android') {
-                sh "./gradlew clean build"
-                if (scmVars.GIT_BRANCH == "develop") {
-                  sh "./gradlew publish -PreleaseVersionExt='${versionExt}'"
+                withEnv(["CODEARTIFACT_AUTH_TOKEN=${codeArtifactToken}"]) {
+                  sh "./gradlew clean build"
+                  if (scmVars.GIT_BRANCH == "develop") {
+                    sh "./gradlew publish -PreleaseVersionExt='${versionExt}'"
+                  }
                 }
               }
             }
